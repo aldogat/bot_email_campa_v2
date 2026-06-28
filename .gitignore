@@ -9,3 +9,6 @@ NOMBRE_DE_TU_ARCHIVO_utf8.csv
 tu_archivo_utf8.csv
 *.csv
 !leads_10.csv
+config.py
+config.p
+__pycache__/
