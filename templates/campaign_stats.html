@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Estadísticas - {{ campaign.name }}{% endblock %}
+{% block header_title %}📊 {{ campaign.name }}{% endblock %}
+{% block header_sub %}{{ campaign.subject }}{% endblock %}
+
+{% block content %}
+<div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:30px;">
+    <div class="card" style="flex:1; min-width:150px;">
+        <div class="label">Estado</div>
+        <div>
+            <span class="status-badge status-{{ 'enviada' if campaign.status=='sent' else 'enviando' if campaign.status=='sending' else 'borrador' }}">
+                {{ campaign.status }}
+            </span>
+        </div>
+    </div>
+    <div class="card" style="flex:1; min-width:150px;">
+        <div class="label">Total Contactos</div>
+        <div class="value">{{ contacts|length }}</div>
+    </div>
+    <div class="card" style="flex:1; min-width:150px;">
+        <div class="label">Enviados</div>
+        <div class="value">{{ contacts|selectattr('status', 'in', ['sent','opened','clicked'])|list|length }}</div>
+    </div>
+    <div class="card" style="flex:1; min-width:150px;">
+        <div class="label">Aperturas</div>
+        <div class="value">{{ contacts|selectattr('status', 'equalto', 'opened')|list|length }}</div>
+    </div>
+    <div class="card" style="flex:1; min-width:150px;">
+        <div class="label">Clics</div>
+        <div class="value">{{ contacts|selectattr('status', 'equalto', 'clicked')|list|length }}</div>
+    </div>
+</div>
+
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Fecha envío</th>
+                <th>Fecha apertura</th>
+                <th>Fecha clic</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for contact in contacts %}
+            <tr>
+                <td>{{ contact.email }}</td>
+                <td>{{ contact.name or '-' }}</td>
+                <td>
+                    <span class="status-badge status-{{ 'enviada' if contact.status=='sent' else 'enviando' if contact.status=='opened' else 'borrador' if contact.status=='pending' else 'borrador' }}">
+                        {{ contact.status }}
+                    </span>
+                </td>
+                <td>{{ contact.sent_at.strftime('%d/%m/%Y %H:%M') if contact.sent_at else '-' }}</td>
+                <td>{{ contact.opened_at.strftime('%d/%m/%Y %H:%M') if contact.opened_at else '-' }}</td>
+                <td>{{ contact.clicked_at.strftime('%d/%m/%Y %H:%M') if contact.clicked_at else '-' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align:center; padding:30px;">No hay contactos en esta campaña.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div style="display:flex; gap:15px; margin-top:20px; flex-wrap:wrap;">
+    <a href="{{ url_for('index') }}" class="btn-secondary">← Volver al dashboard</a>
+    <a href="{{ url_for('campaign_new') }}" class="btn-primary" style="background:#4fc3f7; color:#0f1a26; padding:10px 20px; border-radius:30px; text-decoration:none; font-weight:600;">+ Nueva campaña</a>
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Campaña - EmailPro{% endblock %}
+{% block header_title %}📝 Nueva Campaña{% endblock %}
+{% block header_sub %}Configura y envía tu campaña de email marketing.{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
+<style>
+    .row-grid { display:grid; grid-template-columns:2fr 1fr; gap:30px; }
+    @media (max-width:768px) { .row-grid { grid-template-columns:1fr; } }
+    .card-config { background:#f8fafc; border-radius:16px; padding:20px; border:1px solid #eaeef5; }
+    .form-check { display:flex; align-items:center; gap:10px; }
+    .form-check input { width:auto; margin:0; }
+    .form-check label { margin:0; font-weight:500; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <div class="row-grid">
+            <div>
+                <div class="form-group">
+                    {{ form.name.label }}
+                    {{ form.name(class="form-control", placeholder="Ej. Oferta junio") }}
+                </div>
+                <div class="form-group">
+                    {{ form.subject.label }}
+                    {{ form.subject(class="form-control", placeholder='Ej. Oferta especial para {{Nombre de la Unidad Económica}}') }}
+                </div>
+                <div class="form-group">
+                    {{ form.body.label }}
+                    <textarea id="editor" name="body" class="form-control" rows="10">{{ form.body.data or '' }}</textarea>
+                    <small style="color:#8a9aa8;">Usa <code>{{propuesta}}</code> para insertar el texto generado por IA.</small>
+                </div>
+            </div>
+            <div>
+                <div class="card-config">
+                    <h4 style="margin-bottom:15px;">⚙️ Configuración</h4>
+                    <div class="form-group">
+                        {{ form.sender_email.label }}
+                        {{ form.sender_email(class="form-control", value="ventas@inspol.com.mx") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.sender_name.label }}
+                        {{ form.sender_name(class="form-control", placeholder="Tu empresa") }}
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Contraseña del remitente</label>
+                        <input type="password" name="password" id="password" class="form-control" placeholder="Contraseña de correo">
+                    </div>
+                    <div class="form-group">
+                        {{ form.csv_file.label }}
+                        {{ form.csv_file(class="form-control") }}
+                        <small style="color:#8a9aa8;">Debe tener columna "Correo electrónico". Columnas opcionales: "giro", "descripcion".</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="adjunto">Archivo adjunto (PDF, imagen, etc.)</label>
+                        <input type="file" name="adjunto" id="adjunto" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                        <small style="color:#8a9aa8;">Opcional: se enviará con el correo.</small>
+                    </div>
+                    <div class="form-group form-check">
+                        {{ form.send_now(class="form-check-input") }}
+                        {{ form.send_now.label(class="form-check-label") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.sample_size.label }}
+                        {{ form.sample_size(class="form-control", type="number", min="0", value="0") }}
+                        <small style="color:#8a9aa8;">0 = enviar a todos.</small>
+                    </div>
+                    {{ form.submit(class="btn-primary", value="Guardar y enviar") }}
+                    <a href="{{ url_for('index') }}" class="btn-secondary" style="display:block; text-align:center; margin-top:10px;">Cancelar</a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    tinymce.init({
+        selector: '#editor',
+        plugins: 'image code link lists',
+        toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link image | code',
+        height: 300,
+        images_upload_url: '{{ url_for("upload_image") }}',
+        automatic_uploads: true,
+        images_upload_handler: function (blobInfo, success, failure) {
+            var xhr, formData;
+            xhr = new XMLHttpRequest();
+            xhr.withCredentials = false;
+            xhr.open('POST', '{{ url_for("upload_image") }}');
+            xhr.onload = function() {
+                var json;
+                if (xhr.status != 200) {
+                    failure('HTTP Error: ' + xhr.status);
+                    return;
+                }
+                json = JSON.parse(xhr.responseText);
+                if (!json || typeof json.location != 'string') {
+                    failure('Invalid JSON: ' + xhr.responseText);
+                    return;
+                }
+                success(json.location);
+            };
+            formData = new FormData();
+            formData.append('file', blobInfo.blob(), blobInfo.filename());
+            xhr.send(formData);
+        }
+    });
+</script>
+{% endblock %}

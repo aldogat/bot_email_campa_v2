@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Costos y Tokens - INSPOL AI{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <div class="left">
+        <h1><span>Costos</span> y Tokens</h1>
+        <div class="sub">Monitoreo de gastos de IA y rendimiento por campaña</div>
+    </div>
+</div>
+
+<!-- Métricas de costo -->
+<div class="metric-grid">
+    <div class="metric-item">
+        <div class="icon"><i class="fas fa-dollar-sign" style="color:#28a745;"></i></div>
+        <div class="number">${{ "%.4f"|format(total_cost) }}</div>
+        <div class="label">Costo Total</div>
+    </div>
+    <div class="metric-item">
+        <div class="icon"><i class="fas fa-arrow-right" style="color:#2a6df4;"></i></div>
+        <div class="number">{{ total_tokens_in }}</div>
+        <div class="label">Tokens Entrada</div>
+    </div>
+    <div class="metric-item">
+        <div class="icon"><i class="fas fa-arrow-left" style="color:#17a2b8;"></i></div>
+        <div class="number">{{ total_tokens_out }}</div>
+        <div class="label">Tokens Salida</div>
+    </div>
+</div>
+
+<!-- Costo por tipo -->
+<div class="card">
+    <div class="card-title"><i class="fas fa-chart-pie"></i> Costo por Tipo</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        {% for tipo in cost_por_tipo %}
+            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f0f3f8;">
+                <span><strong>{{ tipo.type }}</strong> ({{ tipo.count }} operaciones)</span>
+                <span>${{ "%.4f"|format(tipo.total) }}</span>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Costo por campaña -->
+<div class="card">
+    <div class="card-title"><i class="fas fa-bullhorn"></i> Costo por Campaña</div>
+    {% if cost_por_campaign %}
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            {% for camp in cost_por_campaign %}
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f0f3f8;">
+                    <span>{{ camp.name }}</span>
+                    <span>${{ "%.4f"|format(camp.total) }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="color:#6c7e9e;">No hay datos de costos por campaña aún.</p>
+    {% endif %}
+</div>
+
+<!-- Costo diario (gráfico) -->
+<div class="card">
+    <div class="card-title"><i class="fas fa-chart-line"></i> Costo Diario (últimos 30 días)</div>
+    <div style="height:200px;">
+        <canvas id="dailyCostChart"></canvas>
+    </div>
+</div>
+
+<!-- Top 5 leads con mayor costo -->
+<div class="card">
+    <div class="card-title"><i class="fas fa-user-tie"></i> Top 5 Leads por Costo</div>
+    {% if cost_por_lead %}
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            {% for lead in cost_por_lead %}
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f0f3f8;">
+                    <span>{{ lead.nombre or lead.razon_social or 'Sin nombre' }}</span>
+                    <span>${{ "%.4f"|format(lead.total) }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="color:#6c7e9e;">No hay datos de costos por lead aún.</p>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('dailyCostChart').getContext('2d');
+    const dailyData = {{ daily_costs|tojson }};
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dailyData.map(d => d.day),
+            datasets: [{
+                label: 'Costo diario ($)',
+                data: dailyData.map(d => d.total),
+                backgroundColor: 'rgba(42, 109, 244, 0.6)',
+                borderColor: '#2a6df4',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) { return '$' + value.toFixed(4); }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

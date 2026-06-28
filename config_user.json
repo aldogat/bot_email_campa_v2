@@ -1,0 +1,8 @@
+{
+    "smtp_host": "65.99.252.38",
+    "smtp_port": 587,
+    "smtp_user": "ventas@inspol.com.mx",
+    "smtp_password": "Inspol2.0@2026",
+    "default_sender_name": "INSPOL México",
+    "default_sender_email": "ventas@inspol.com.mx"
+}

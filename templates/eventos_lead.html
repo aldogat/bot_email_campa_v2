@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Eventos de {{ lead.nombre }}{% endblock %}
+{% block content %}
+<div class="topbar"><div class="left"><h1>Eventos de <span>{{ lead.nombre }}</span></h1><div class="sub">Tracking de correos de prueba</div></div></div>
+<div class="card">
+    <div class="card-title"><i class="fas fa-chart-line"></i> Últimos eventos</div>
+    {% if eventos %}
+    <table>
+        <tr><th>Fecha</th><th>Tipo</th></tr>
+        {% for e in eventos %}
+        <tr><td>{{ e.fecha }}</td><td>{{ e.tipo }}</td></tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p class="text-muted">No se han registrado eventos aún. Envía un correo de prueba con tracking.</p>
+    {% endif %}
+</div>
+{% endblock %}

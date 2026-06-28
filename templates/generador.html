@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Generador de Correos IA{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <div class="left">
+        <h1><span>Generador</span> de Correos IA</h1>
+        <div class="sub">Crea correos personalizados con inteligencia artificial</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title"><i class="fas fa-robot"></i> Generar Correo para un Lead</div>
+    <form action="{{ url_for('generar_correo') }}" method="POST">
+        <div style="margin-bottom:15px;">
+            <label style="display:block; font-weight:600; margin-bottom:5px;">Seleccionar Lead:</label>
+            <select name="lead_id" style="width:100%; padding:10px; border:1px solid #dce1e9; border-radius:8px;">
+                <option value="">-- Selecciona un lead --</option>
+                {% for lead in leads %}
+                    <option value="{{ lead.id }}">
+                        {{ lead.nombre or lead.razon_social or 'Sin nombre' }} 
+                        (Scoring: {{ lead.scoring or '-' }}) 
+                        - Prioridad: {{ lead.prioridad or '-' }}/5 
+                        - {{ lead.municipio or '' }}, {{ lead.estado or '' }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-magic"></i> Generar Correo</button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-title"><i class="fas fa-layer-group"></i> Generación Masiva</div>
+    <form action="{{ url_for('generar_masivo') }}" method="POST">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+            <div>
+                <label style="display:block; font-weight:600; margin-bottom:5px;">Filtrar por Scoring:</label>
+                <select name="scoring" style="width:100%; padding:10px; border:1px solid #dce1e9; border-radius:8px;">
+                    <option value="">Todos</option>
+                    <option value="A">A - Muy atractivo</option>
+                    <option value="B">B - Atractivo</option>
+                    <option value="C">C - Regular</option>
+                    <option value="D">D - Poco atractivo</option>
+                </select>
+            </div>
+            <div>
+                <label style="display:block; font-weight:600; margin-bottom:5px;">Límite de leads:</label>
+                <input type="number" name="limite" value="5" min="1" max="100" style="width:100%; padding:10px; border:1px solid #dce1e9; border-radius:8px;">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success" style="margin-top:15px;">
+            <i class="fas fa-robot"></i> Generar para varios leads
+        </button>
+    </form>
+</div>
+
+<style>
+    .btn { padding:8px 16px; border:none; border-radius:8px; font-weight:500; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:0.2s; font-size:14px; }
+    .btn-primary { background:#2a6df4; color:white; }
+    .btn-primary:hover { background:#1a5ad4; }
+    .btn-success { background:#28a745; color:white; }
+    .btn-success:hover { background:#218838; }
+</style>
+{% endblock %}

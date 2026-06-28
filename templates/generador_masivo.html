@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Correos Generados Masivamente{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <div class="left">
+        <h1><span>Correos</span> Generados Masivamente</h1>
+        <div class="sub">{{ resultados|length }} correos generados</div>
+    </div>
+    <div class="right">
+        <a href="{{ url_for('generador') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+{% for item in resultados %}
+<div class="card" style="margin-bottom:20px; border-left:4px solid {% if item.lead.prioridad >= 4 %}#dc3545{% elif item.lead.prioridad >= 3 %}#ffc107{% else %}#28a745{% endif %};">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div>
+            <strong>{{ item.lead.nombre or item.lead.razon_social or 'Sin nombre' }}</strong>
+            <span style="margin-left:12px; font-size:13px; color:#6c7e9e;">
+                Scoring: {{ item.lead.scoring or '-' }} | Prioridad: {{ item.lead.prioridad or '-' }}/5
+            </span>
+        </div>
+        <span style="font-size:12px; color:#6c7e9e;">Costo: ${{ "%.6f"|format(item.costo) }}</span>
+    </div>
+    <div style="background:#f8faff; padding:15px; border-radius:8px; font-size:13px; max-height:200px; overflow-y:auto;">
+        <strong>Asunto:</strong> {{ item.asuntos[0] if item.asuntos else 'Sin asunto' }}<br><br>
+        {{ item.cuerpo[:300] }}{% if item.cuerpo|length > 300 %}...{% endif %}
+    </div>
+    <div style="margin-top:10px;">
+        <button onclick="alert('Ver detalle en desarrollo')" class="btn btn-sm btn-info">Ver completo</button>
+    </div>
+</div>
+{% endfor %}
+
+<style>
+    .btn { padding:8px 16px; border:none; border-radius:8px; font-weight:500; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:0.2s; font-size:14px; }
+    .btn-secondary { background:#6c7e9e; color:white; }
+    .btn-secondary:hover { background:#5a6a8a; }
+    .btn-info { background:#17a2b8; color:white; }
+    .btn-info:hover { background:#138496; }
+    .btn-sm { padding:4px 10px; font-size:12px; }
+</style>
+{% endblock %}

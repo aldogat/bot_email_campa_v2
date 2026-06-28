@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Ejecutivo - INSPOL AI{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <div class="left">
+        <h1><span>Dashboard</span> Ejecutivo</h1>
+        <div class="sub">INSPOL AI Sales Intelligence · Datos en tiempo real</div>
+    </div>
+    <div class="right">
+        <div class="date-badge"><i class="far fa-calendar-alt"></i> {{ now.strftime('%B %Y') }}</div>
+        <div class="avatar">IA</div>
+    </div>
+</div>
+
+<div class="metric-grid">
+    <div class="metric-item"><div class="icon"><i class="fas fa-building"></i></div><div class="number">{{ stats.total_companies }}</div><div class="label">Empresas Analizadas</div></div>
+    <div class="metric-item"><div class="icon"><i class="fas fa-envelope"></i></div><div class="number">{{ stats.total_sent }}</div><div class="label">Correos Enviados</div></div>
+    <div class="metric-item"><div class="icon"><i class="fas fa-eye"></i></div><div class="number">{{ stats.total_opens }}</div><div class="label">Aperturas</div></div>
+    <div class="metric-item"><div class="icon"><i class="fas fa-file-pdf"></i></div><div class="number">{{ stats.total_pdf_downloads }}</div><div class="label">PDF Abiertos</div></div>
+    <div class="metric-item"><div class="icon"><i class="fab fa-whatsapp"></i></div><div class="number">{{ stats.total_whatsapp }}</div><div class="label">WhatsApp</div></div>
+    <div class="metric-item"><div class="icon"><i class="fas fa-reply"></i></div><div class="number">{{ stats.total_responses }}</div><div class="label">Respuestas</div></div>
+    <div class="metric-item"><div class="icon"><i class="fas fa-calendar-check"></i></div><div class="number">{{ stats.total_meetings }}</div><div class="label">Reuniones</div></div>
+    <div class="metric-item"><div class="icon"><i class="fas fa-file-signature"></i></div><div class="number">{{ stats.total_quotations }}</div><div class="label">Cotizaciones</div></div>
+    <div class="metric-item"><div class="icon"><i class="fas fa-dollar-sign"></i></div><div class="number">{{ stats.total_sales }}</div><div class="label">Ventas</div></div>
+    <div class="metric-item"><div class="icon"><i class="fas fa-chart-line"></i></div><div class="number">{{ stats.roi }}x</div><div class="label">ROI Estimado</div></div>
+</div>
+
+<div class="two-col">
+    <div class="card">
+        <div class="card-title"><i class="fas fa-funnel-dollar"></i> Embudo de Conversión</div>
+        <div class="embudo-wrapper">
+            <div class="embudo-paso"><div class="valor">{{ stats.total_companies }}</div><div class="etiqueta">Analizadas</div><div class="porcentaje">100%</div></div>
+            <div class="embudo-paso"><div class="valor">{{ stats.total_sent }}</div><div class="etiqueta">Enviados</div><div class="porcentaje">{{ stats.percent_sent }}%</div></div>
+            <div class="embudo-paso"><div class="valor">{{ stats.total_opens }}</div><div class="etiqueta">Aperturas</div><div class="porcentaje">{{ stats.percent_open }}%</div></div>
+            <div class="embudo-paso"><div class="valor">{{ stats.total_pdf_downloads }}</div><div class="etiqueta">PDF</div><div class="porcentaje">{{ stats.percent_pdf }}%</div></div>
+            <div class="embudo-paso"><div class="valor">{{ stats.total_whatsapp }}</div><div class="etiqueta">WhatsApp</div><div class="porcentaje">{{ stats.percent_whatsapp }}%</div></div>
+            <div class="embudo-paso"><div class="valor">{{ stats.total_responses }}</div><div class="etiqueta">Respuestas</div><div class="porcentaje">{{ stats.percent_response }}%</div></div>
+            <div class="embudo-paso"><div class="valor">{{ stats.total_meetings }}</div><div class="etiqueta">Reuniones</div><div class="porcentaje">{{ stats.percent_meeting }}%</div></div>
+            <div class="embudo-paso"><div class="valor">{{ stats.total_sales }}</div><div class="etiqueta">Ventas</div><div class="porcentaje">{{ stats.percent_sale }}%</div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class="fas fa-clock"></i> Aperturas por Horario</div>
+        <div class="chart-container" style="height:160px;">
+            <canvas id="aperturasHorarioChart"></canvas>
+        </div>
+        <div class="horario-lista">
+            {% for item in horario_data %}
+            <div class="item"><span class="hora">{{ item.hora }}</span><span class="pct">{{ item.porcentaje }}%</span></div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="two-col">
+    <div class="card">
+        <div class="flex-between">
+            <div class="card-title" style="margin-bottom:0;"><i class="fas fa-brain"></i> Rendimiento por Estrategia (IA)</div>
+            <a href="#" class="link-ver-todas">Ver todas</a>
+        </div>
+        <div style="margin-top:12px;">
+            <div class="estrategia-grid">
+                {% for e in estrategias %}
+                <div class="estrategia-item">
+                    <div class="name">{{ e.nombre }}</div>
+                    <div class="stats">
+                        <span>{{ e.apertura }}%</span> Apertura ·
+                        <span>{{ e.respuesta }}%</span> Respuesta ·
+                        <span>{{ e.conversion }}%</span> Conversión
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class="fas fa-tags"></i> Respuestas por Clasificación (IA)</div>
+        <div>
+            {% for item in clasificaciones %}
+            <div class="clasificacion-item">
+                <span class="label">{{ item.label }}</span>
+                <span><span class="count">{{ item.count }}</span> <span class="percent">({{ item.percent }}%)</span></span>
+            </div>
+            {% endfor %}
+            <div class="total-respuestas">Total respuestas: {{ total_respuestas }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="flex-between">
+        <div class="card-title" style="margin-bottom:0;"><i class="fas fa-trophy"></i> Top Campañas</div>
+        <a href="#" class="link-ver-todas">Ver todas</a>
+    </div>
+    <div class="table-wrap" style="margin-top:12px;">
+        <table>
+            <thead><tr><th>Campaña</th><th>Enviados</th><th>Apertura</th><th>Respuesta</th><th>Conversión</th><th>Costo IA</th><th>ROI</th></tr></thead>
+            <tbody>
+                {% for camp in top_campaigns %}
+                <tr>
+                    <td><strong>{{ camp.name }}</strong></td>
+                    <td>{{ camp.total_sent }}</td>
+                    <td>{{ camp.open_rate }}%</td>
+                    <td>{{ camp.response_rate }}%</td>
+                    <td>{{ camp.conversion_rate }}%</td>
+                    <td>${{ camp.ai_cost }}</td>
+                    <td><span class="badge {% if camp.roi > 3 %}success{% else %}warning{% endif %}">{{ camp.roi }}x</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="two-col">
+    <div class="card">
+        <div class="card-title"><i class="fas fa-clock"></i> Actividad Reciente</div>
+        <div>
+            {% for act in actividad_reciente %}
+            <div class="activity-item">
+                <div class="activity-icon"><i class="fas {{ act.icono }}"></i></div>
+                <div class="activity-content">
+                    <div class="title">{{ act.titulo }}</div>
+                    <div class="desc">{{ act.descripcion }}</div>
+                    <div class="time">{{ act.tiempo }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class="fas fa-chart-simple"></i> Top Datos</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px 16px;">
+            <div><span class="top-datos-label">Mejor Respuesta</span><br><span class="top-datos-valor">{{ top_datos.mejor_respuesta }}%</span> <span class="text-muted">({{ top_datos.mejor_respuesta_industria }})</span></div>
+            <div><span class="top-datos-label">Mejor Conversión</span><br><span class="top-datos-valor">{{ top_datos.mejor_conversion }}%</span> <span class="text-muted">({{ top_datos.mejor_conversion_industria }})</span></div>
+            <div><span class="top-datos-label">Costo IA Promedio</span><br><span class="top-datos-valor">${{ top_datos.costo_ia_promedio }}</span> <span class="text-muted">por lead</span></div>
+            <div><span class="top-datos-label">ROI Promedio</span><br><span class="top-datos-valor">{{ top_datos.roi_promedio }}x</span> <span class="text-muted">general</span></div>
+            <div><span class="top-datos-label">Mejor Apertura</span><br><span class="top-datos-valor">{{ top_datos.mejor_apertura }}%</span> <span class="text-muted">({{ top_datos.mejor_apertura_industria }})</span></div>
+            <div><span class="top-datos-label">Total Clicks</span><br><span class="top-datos-valor">{{ stats.total_clicks }}</span> <span class="text-muted">totales</span></div>
+        </div>
+        <div style="margin-top:16px; border-top:1px solid #eef3f8; padding-top:14px; display:flex; gap:20px; flex-wrap:wrap;">
+            {% for item in top_datos.horarios %}
+            <div><span class="top-datos-label">Apertura por horario</span><br><span class="top-datos-valor">{{ item.porcentaje }}%</span> <span class="text-muted">({{ item.hora }})</span></div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div style="text-align:center; margin-top:30px; font-size:13px; color:#8a9bb8; border-top:1px solid #e2e8f0; padding-top:20px;">
+    <i class="fas fa-robot" style="margin-right:6px;"></i> Dashboard impulsado por IA · Datos actualizados al instante
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const horarioData = {{ horario_data_json|safe }};
+    const ctx = document.getElementById('aperturasHorarioChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: horarioData.labels,
+            datasets: [{
+                label: 'Aperturas (%)',
+                data: horarioData.values,
+                backgroundColor: ['#2a6df4','#4a7ff5','#6a91f7','#8aa3f9','#aab5fb','#cac7fd','#2a6df4','#4a7ff5'],
+                borderRadius: 6,
+                barPercentage: 0.7,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ctx.raw + '%' } } },
+            scales: {
+                y: { beginAtZero: true, max: 110, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { callback: (val) => val + '%' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+{% endblock %}

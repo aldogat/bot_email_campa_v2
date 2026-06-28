@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Leads - INSPOL AI{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <div class="left">
+        <h1><span>Gestión</span> de Leads</h1>
+        <div class="sub">Importa, analiza y califica tus prospectos</div>
+    </div>
+    <div class="right">
+        <a href="{{ url_for('importar_leads') }}" class="btn btn-primary">
+            <i class="fas fa-upload"></i> Importar CSV
+        </a>
+        <button onclick="analizarTodos()" class="btn btn-success">
+            <i class="fas fa-robot"></i> Analizar Todos
+        </button>
+    </div>
+</div>
+
+<!-- Resumen de estadísticas -->
+<div class="metric-grid" style="margin-bottom:20px;">
+    <div class="metric-item">
+        <div class="icon"><i class="fas fa-users"></i></div>
+        <div class="number">{{ total_leads }}</div>
+        <div class="label">Total Leads</div>
+    </div>
+    <div class="metric-item">
+        <div class="icon"><i class="fas fa-star"></i></div>
+        <div class="number">{{ leads_scoring.A|default(0) }}</div>
+        <div class="label">Scoring A (Muy atractivo)</div>
+    </div>
+    <div class="metric-item">
+        <div class="icon"><i class="fas fa-star-half-alt"></i></div>
+        <div class="number">{{ leads_scoring.B|default(0) }}</div>
+        <div class="label">Scoring B (Atractivo)</div>
+    </div>
+    <div class="metric-item">
+        <div class="icon"><i class="fas fa-star-half-alt"></i></div>
+        <div class="number">{{ leads_scoring.C|default(0) }}</div>
+        <div class="label">Scoring C (Regular)</div>
+    </div>
+    <div class="metric-item">
+        <div class="icon"><i class="fas fa-star-half-alt"></i></div>
+        <div class="number">{{ leads_scoring.D|default(0) }}</div>
+        <div class="label">Scoring D (Poco atractivo)</div>
+    </div>
+    <div class="metric-item">
+        <div class="icon"><i class="fas fa-robot"></i></div>
+        <div class="number">{{ leads_analizados }}</div>
+        <div class="label">Analizados con IA</div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px; background:white; padding:15px; border-radius:12px; border:1px solid #eaedf2;">
+    <input id="searchInput" type="text" placeholder="🔍 Buscar por nombre, actividad, correo..." style="flex:1; padding:8px 14px; border:1px solid #dce1e9; border-radius:8px; min-width:200px;">
+    <select id="scoringFilter" style="padding:8px 14px; border:1px solid #dce1e9; border-radius:8px;">
+        <option value="">Todos los scorings</option>
+        <option value="A">A - Muy atractivo</option>
+        <option value="B">B - Atractivo</option>
+        <option value="C">C - Regular</option>
+        <option value="D">D - Poco atractivo</option>
+    </select>
+    <select id="estadoFilter" style="padding:8px 14px; border:1px solid #dce1e9; border-radius:8px;">
+        <option value="">Todos los estados</option>
+        <option value="analizados">Analizados</option>
+        <option value="pendientes">Pendientes</option>
+    </select>
+</div>
+
+<!-- Tabla de leads -->
+<div class="card">
+    <div class="flex-between">
+        <div class="card-title" style="margin-bottom:0;"><i class="fas fa-table"></i> Lista de Leads</div>
+        <span id="resultCount" class="text-muted">Cargando...</span>
+    </div>
+    <div class="table-wrap" style="margin-top:12px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Actividad</th>
+                    <th>Scoring</th>
+                    <th>Correo</th>
+                    <th>Estado</th>
+                    <th>Prioridad</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="leadsTable">
+                <!-- Cargado dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function filtrarLeads() {
+        const search = document.getElementById('searchInput').value;
+        const scoring = document.getElementById('scoringFilter').value;
+        const estado = document.getElementById('estadoFilter').value;
+        
+        fetch(`/leads/api/listar?search=${encodeURIComponent(search)}&scoring=${scoring}&estado=${estado}`)
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('leadsTable');
+                tbody.innerHTML = '';
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#6c7e9e;">No hay leads que coincidan con los filtros</td></tr>';
+                    document.getElementById('resultCount').textContent = '0 leads';
+                    return;
+                }
+                
+                data.forEach((lead, i) => {
+                    const scoringColors = {'A': '#28a745', 'B': '#17a2b8', 'C': '#ffc107', 'D': '#dc3545'};
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${i + 1}</td>
+                        <td><strong>${lead.nombre || lead.razon_social || 'Sin nombre'}</strong></td>
+                        <td>${lead.actividad || '-'}</td>
+                        <td><span style="background:${scoringColors[lead.scoring] || '#6c7e9e'}; color:white; padding:2px 12px; border-radius:20px; font-weight:600; font-size:12px;">${lead.scoring || '-'}</span></td>
+                        <td>${lead.correo || '-'}</td>
+                        <td>
+                            ${lead.analyzed ? `<span style="color:#28a745;"><i class="fas fa-check-circle"></i> Analizado</span>` : '<span style="color:#6c7e9e;"><i class="fas fa-clock"></i> Pendiente</span>'}
+                            ${lead.insight ? `<br><small style="color:#6c7e9e;">${lead.insight}</small>` : ''}
+                        </td>
+                        <td>${lead.prioridad ? `<span style="font-weight:600; color:${lead.prioridad >= 4 ? '#dc3545' : lead.prioridad >= 3 ? '#ffc107' : '#28a745'}">${lead.prioridad}/5</span>` : '-'}</td>
+                        <td>
+                            <a href="/leads/${lead.id}" class="btn btn-sm btn-info"><i class="fas fa-eye"></i></a>
+                            ${!lead.analyzed ? `<button onclick="analizarLead(${lead.id})" class="btn btn-sm btn-success"><i class="fas fa-robot"></i></button>` : ''}
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                document.getElementById('resultCount').textContent = `Mostrando ${data.length} leads`;
+            });
+    }
+
+    function analizarLead(id) {
+        if (!confirm('¿Analizar este lead con IA?')) return;
+        fetch(`/leads/${id}/analizar`, { method: 'POST' })
+            .then(() => {
+                alert('✅ Lead analizado correctamente');
+                filtrarLeads();
+            })
+            .catch(() => alert('❌ Error al analizar'));
+    }
+
+    function analizarTodos() {
+        if (!confirm('¿Analizar TODOS los leads pendientes con IA? Puede tomar unos minutos.')) return;
+        fetch('/leads/analizar-todos', { method: 'POST' })
+            .then(() => {
+                alert('✅ Análisis completado');
+                location.reload();
+            })
+            .catch(() => alert('❌ Error en el análisis'));
+    }
+
+    // Event listeners
+    document.getElementById('searchInput').addEventListener('keyup', filtrarLeads);
+    document.getElementById('scoringFilter').addEventListener('change', filtrarLeads);
+    document.getElementById('estadoFilter').addEventListener('change', filtrarLeads);
+
+    // Cargar datos iniciales
+    filtrarLeads();
+</script>
+
+<style>
+    .btn { padding:8px 16px; border:none; border-radius:8px; font-weight:500; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:0.2s; font-size:14px; }
+    .btn-primary { background:#2a6df4; color:white; }
+    .btn-primary:hover { background:#1a5ad4; }
+    .btn-success { background:#28a745; color:white; }
+    .btn-success:hover { background:#218838; }
+    .btn-info { background:#17a2b8; color:white; }
+    .btn-info:hover { background:#138496; }
+    .btn-sm { padding:4px 10px; font-size:12px; }
+</style>
+{% endblock %}

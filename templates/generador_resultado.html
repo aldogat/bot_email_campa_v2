@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Correo Generado - INSPOL AI{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <div class="left">
+        <h1><span>Correo</span> Generado</h1>
+        <div class="sub">Para: {{ lead.nombre or lead.razon_social or 'Empresa' }}</div>
+    </div>
+    <div class="right">
+        <a href="{{ url_for('generador') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title"><i class="fas fa-envelope"></i> Asuntos Sugeridos</div>
+    <ul style="list-style:none; padding:0;">
+        {% for asunto in resultado.asuntos %}
+            <li style="padding:8px 0; border-bottom:1px solid #f0f3f8;">
+                <i class="fas fa-chevron-right" style="color:#2a6df4;"></i> {{ asunto }}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<div class="card">
+    <div class="card-title"><i class="fas fa-file-alt"></i> Cuerpo del Correo</div>
+    <div style="background:#f8faff; padding:20px; border-radius:12px; white-space:pre-wrap; font-family:monospace; font-size:14px; line-height:1.6;">
+        {{ resultado.cuerpo }}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title"><i class="fas fa-chart-line"></i> Estadísticas de IA</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px;">
+        <div>
+            <strong>Tokens entrada:</strong><br>
+            {{ resultado.tokens_entrada }}
+        </div>
+        <div>
+            <strong>Tokens salida:</strong><br>
+            {{ resultado.tokens_salida }}
+        </div>
+        <div>
+            <strong>Costo estimado:</strong><br>
+            ${{ "%.6f"|format(resultado.costo) }}
+        </div>
+    </div>
+</div>
+
+<div style="display:flex; gap:12px; justify-content:flex-end; margin-top:20px;">
+    <a href="{{ url_for('generador') }}" class="btn btn-secondary">Generar otro</a>
+    <button onclick="alert('Funcionalidad de envío próxima')" class="btn btn-success">
+        <i class="fas fa-paper-plane"></i> Enviar Correo
+    </button>
+</div>
+
+<style>
+    .btn { padding:8px 16px; border:none; border-radius:8px; font-weight:500; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:0.2s; font-size:14px; }
+    .btn-secondary { background:#6c7e9e; color:white; }
+    .btn-secondary:hover { background:#5a6a8a; }
+    .btn-success { background:#28a745; color:white; }
+    .btn-success:hover { background:#218838; }
+</style>
+{% endblock %}

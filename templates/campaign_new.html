@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-4">📝 Nueva Campaña</h1>
+
+<form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                {{ form.name.label(class="form-label") }}
+                {{ form.name(class="form-control") }}
+                {% if form.name.errors %}
+                    <div class="text-danger">{{ form.name.errors[0] }}</div>
+                {% endif %}
+            </div>
+            <div class="mb-3">
+                {{ form.subject.label(class="form-label") }}
+                {{ form.subject(class="form-control") }}
+                {% if form.subject.errors %}
+                    <div class="text-danger">{{ form.subject.errors[0] }}</div>
+                {% endif %}
+            </div>
+            <div class="mb-3">
+                {{ form.sender_email.label(class="form-label") }}
+                {{ form.sender_email(class="form-control") }}
+                {% if form.sender_email.errors %}
+                    <div class="text-danger">{{ form.sender_email.errors[0] }}</div>
+                {% endif %}
+            </div>
+            <div class="mb-3">
+                {{ form.sender_name.label(class="form-label") }}
+                {{ form.sender_name(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.csv_file.label(class="form-label") }}
+                {{ form.csv_file(class="form-control") }}
+                {% if form.csv_file.errors %}
+                    <div class="text-danger">{{ form.csv_file.errors[0] }}</div>
+                {% endif %}
+                <div class="form-text">Debe contener una columna llamada "Correo electrónico".</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                {{ form.body.label(class="form-label") }}
+                {{ form.body(class="form-control", rows=10, id="editor") }}
+                {% if form.body.errors %}
+                    <div class="text-danger">{{ form.body.errors[0] }}</div>
+                {% endif %}
+                <div class="form-text">Puedes usar variables como {{ "{{Nombre de la Unidad Económica}}" }} para personalizar.</div>
+            </div>
+            <div class="mb-3 form-check">
+                {{ form.send_now(class="form-check-input") }}
+                {{ form.send_now.label(class="form-check-label") }}
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Contraseña del remitente (para enviar)</label>
+                <input type="password" name="password" id="password" class="form-control" placeholder="Contraseña de {{ form.sender_email.data or 'ventas@inspol.com.mx' }}">
+            </div>
+            <div class="mb-3">
+                {{ form.sample_size.label(class="form-label") }}
+                {{ form.sample_size(class="form-control", type="number", min="0") }}
+                <div class="form-text">0 = enviar a todos.</div>
+            </div>
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </div>
+</form>
+
+<script>
+    tinymce.init({
+        selector: '#editor',
+        plugins: 'image code link lists',
+        toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | link image | code',
+        height: 300,
+        images_upload_url: '{{ url_for("upload_image") }}',
+        automatic_uploads: true,
+        images_upload_handler: function (blobInfo, success, failure) {
+            var xhr, formData;
+            xhr = new XMLHttpRequest();
+            xhr.withCredentials = false;
+            xhr.open('POST', '{{ url_for("upload_image") }}');
+            xhr.onload = function() {
+                var json;
+                if (xhr.status != 200) {
+                    failure('HTTP Error: ' + xhr.status);
+                    return;
+                }
+                json = JSON.parse(xhr.responseText);
+                if (!json || typeof json.location != 'string') {
+                    failure('Invalid JSON: ' + xhr.responseText);
+                    return;
+                }
+                success(json.location);
+            };
+            formData = new FormData();
+            formData.append('file', blobInfo.blob(), blobInfo.filename());
+            xhr.send(formData);
+        }
+    });
+</script>
+{% endblock %}

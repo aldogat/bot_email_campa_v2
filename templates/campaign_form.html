@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Campaña - INSPOL AI{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <div class="left">
+        <h1><span>Nueva</span> Campaña</h1>
+        <div class="sub">Configura los detalles y selecciona los leads</div>
+    </div>
+    <div class="right">
+        <a href="{{ url_for('campaigns') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div style="padding:12px; border-radius:8px; margin-bottom:15px; background:{% if category == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; color:{% if category == 'success' %}#155724{% else %}#721c24{% endif %};">
+                {{ message|safe }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<form method="POST">
+    <div class="card">
+        <div class="card-title"><i class="fas fa-cog"></i> Configuración</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+            <div>
+                <label style="display:block; font-weight:600; margin-bottom:5px;">Nombre de la campaña *</label>
+                <input type="text" name="name" required style="width:100%; padding:10px; border:1px solid #dce1e9; border-radius:8px;">
+            </div>
+            <div>
+                <label style="display:block; font-weight:600; margin-bottom:5px;">Asunto del correo *</label>
+                <input type="text" name="subject" required style="width:100%; padding:10px; border:1px solid #dce1e9; border-radius:8px;">
+            </div>
+            <div>
+                <label style="display:block; font-weight:600; margin-bottom:5px;">Remitente (email)</label>
+                <input type="email" name="sender_email" value="{{ config.default_sender_email }}" style="width:100%; padding:10px; border:1px solid #dce1e9; border-radius:8px;">
+            </div>
+            <div>
+                <label style="display:block; font-weight:600; margin-bottom:5px;">Nombre del remitente</label>
+                <input type="text" name="sender_name" value="{{ config.default_sender_name }}" style="width:100%; padding:10px; border:1px solid #dce1e9; border-radius:8px;">
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class="fas fa-envelope-open-text"></i> Contenido del correo</div>
+        <div>
+            <label style="display:block; font-weight:600; margin-bottom:5px;">HTML del correo *</label>
+            <textarea name="body_html" required rows="12" style="width:100%; padding:10px; border:1px solid #dce1e9; border-radius:8px; font-family:monospace;"></textarea>
+            <p style="font-size:12px; color:#6c7e9e; margin-top:5px;">
+                Puedes usar el <a href="{{ url_for('generador') }}">Generador de Correos IA</a> para crear contenido personalizado.
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class="fas fa-users"></i> Seleccionar Leads</div>
+        <div style="max-height:400px; overflow-y:auto; border:1px solid #eef2f7; border-radius:8px; padding:10px;">
+            {% if leads %}
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    {% for lead in leads %}
+                        <label style="display:flex; align-items:center; gap:8px; padding:4px 8px; border-radius:4px; cursor:pointer;">
+                            <input type="checkbox" name="lead_ids" value="{{ lead.id }}">
+                            <span>{{ lead.nombre or lead.razon_social or 'Sin nombre' }}</span>
+                            <span style="font-size:11px; color:#6c7e9e;">({{ lead.correo }})</span>
+                            <span style="font-size:11px; background:{% if lead.scoring == 'A' %}#28a745{% elif lead.scoring == 'B' %}#17a2b8{% elif lead.scoring == 'C' %}#ffc107{% else %}#dc3545{% endif %}; color:white; padding:0 6px; border-radius:10px;">
+                                {{ lead.scoring or '-' }}
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="text-align:center; color:#6c7e9e; padding:20px;">
+                    No hay leads con correo electrónico.
+                    <br>
+                    <a href="{{ url_for('importar_leads') }}">Importa leads primero</a>
+                </p>
+            {% endif %}
+        </div>
+        <div style="margin-top:10px;">
+            <button type="button" onclick="seleccionarTodos()" class="btn btn-sm btn-secondary">Seleccionar todos</button>
+            <button type="button" onclick="deseleccionarTodos()" class="btn btn-sm btn-secondary">Deseleccionar todos</button>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:20px;">
+        <a href="{{ url_for('campaigns') }}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Crear Campaña
+        </button>
+    </div>
+</form>
+
+<script>
+    function seleccionarTodos() {
+        document.querySelectorAll('input[name="lead_ids"]').forEach(cb => cb.checked = true);
+    }
+    function deseleccionarTodos() {
+        document.querySelectorAll('input[name="lead_ids"]').forEach(cb => cb.checked = false);
+    }
+</script>
+
+<style>
+    .btn { padding:8px 16px; border:none; border-radius:8px; font-weight:500; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:0.2s; font-size:14px; }
+    .btn-primary { background:#2a6df4; color:white; }
+    .btn-primary:hover { background:#1a5ad4; }
+    .btn-secondary { background:#6c7e9e; color:white; }
+    .btn-secondary:hover { background:#5a6a8a; }
+    .btn-sm { padding:4px 10px; font-size:12px; }
+</style>
+{% endblock %}

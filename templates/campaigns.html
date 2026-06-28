@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Campañas - INSPOL AI{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <div class="left">
+        <h1><span>Gestión</span> de Campañas</h1>
+        <div class="sub">Crea y envía campañas de email marketing</div>
+    </div>
+    <div class="right">
+        <a href="{{ url_for('campaign_new') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nueva Campaña
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title"><i class="fas fa-list"></i> Campañas</div>
+    {% if campaigns %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Asunto</th>
+                        <th>Contactos</th>
+                        <th>Enviados</th>
+                        <th>Aperturas</th>
+                        <th>Clics</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for camp in campaigns %}
+                        <tr>
+                            <td><strong>{{ camp.name }}</strong></td>
+                            <td>{{ camp.subject[:30] }}{% if camp.subject|length > 30 %}...{% endif %}</td>
+                            <td>{{ camp.total_contacts }}</td>
+                            <td>{{ camp.contacts|selectattr('sent_at')|list|length }}</td>
+                            <td>{{ camp.contacts|selectattr('opened_at')|list|length }}</td>
+                            <td>{{ camp.contacts|selectattr('clicked_at')|list|length }}</td>
+                            <td>
+                                <span class="badge {% if camp.status == 'sent' %}success{% else %}warning{% endif %}">
+                                    {{ camp.status }}
+                                </span>
+                            </td>
+                            <td>{{ camp.created_at.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                <a href="{{ url_for('campaign_stats', campaign_id=camp.id) }}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-chart-bar"></i>
+                                </a>
+                                {% if camp.status == 'draft' %}
+                                    <form action="{{ url_for('campaign_send', campaign_id=camp.id) }}" method="POST" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('¿Enviar esta campaña?')">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                <form action="{{ url_for('campaign_delete', campaign_id=camp.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar esta campaña?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p style="text-align:center; padding:30px; color:#6c7e9e;">
+            No hay campañas aún.
+            <br><br>
+            <a href="{{ url_for('campaign_new') }}" class="btn btn-primary">Crear primera campaña</a>
+        </p>
+    {% endif %}
+</div>
+
+<style>
+    .btn { padding:6px 14px; border:none; border-radius:6px; font-weight:500; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:4px; transition:0.2s; font-size:13px; }
+    .btn-primary { background:#2a6df4; color:white; }
+    .btn-primary:hover { background:#1a5ad4; }
+    .btn-success { background:#28a745; color:white; }
+    .btn-success:hover { background:#218838; }
+    .btn-info { background:#17a2b8; color:white; }
+    .btn-info:hover { background:#138496; }
+    .btn-danger { background:#dc3545; color:white; }
+    .btn-danger:hover { background:#c82333; }
+    .btn-sm { padding:4px 10px; font-size:12px; }
+    .badge { padding:2px 10px; border-radius:30px; font-size:12px; font-weight:600; }
+    .badge.success { background:#d4edda; color:#155724; }
+    .badge.warning { background:#fff3cd; color:#856404; }
+</style>
+{% endblock %}

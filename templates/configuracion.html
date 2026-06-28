@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración - INSPOL AI{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <div class="left">
+        <h1><span>Configuración</span> del Sistema</h1>
+        <div class="sub">Configuración SMTP y ajustes generales</div>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div style="padding:12px; border-radius:8px; margin-bottom:15px; background:{% if category == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; color:{% if category == 'success' %}#155724{% else %}#721c24{% endif %};">
+                {{ message|safe }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="card">
+    <div class="card-title"><i class="fas fa-envelope"></i> Configuración SMTP</div>
+    <form method="POST">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+            <div>
+                <label style="display:block; font-weight:600; margin-bottom:5px;">Servidor SMTP</label>
+                <input type="text" name="smtp_host" class="form-control" value="{{ config_data.smtp_host or 'mail.inspol.com.mx' }}" style="width:100%; padding:10px; border:1px solid #dce1e9; border-radius:8px;">
+            </div>
+            <div>
+                <label style="display:block; font-weight:600; margin-bottom:5px;">Puerto SMTP</label>
+                <input type="number" name="smtp_port" class="form-control" value="{{ config_data.smtp_port or 587 }}" style="width:100%; padding:10px; border:1px solid #dce1e9; border-radius:8px;">
+            </div>
+            <div>
+                <label style="display:block; font-weight:600; margin-bottom:5px;">Usuario SMTP</label>
+                <input type="text" name="smtp_user" class="form-control" value="{{ config_data.smtp_user or 'ventas@inspol.com.mx' }}" style="width:100%; padding:10px; border:1px solid #dce1e9; border-radius:8px;">
+            </div>
+            <div>
+                <label style="display:block; font-weight:600; margin-bottom:5px;">Contraseña SMTP</label>
+                <input type="password" name="smtp_password" class="form-control" value="{{ config_data.smtp_password or '' }}" style="width:100%; padding:10px; border:1px solid #dce1e9; border-radius:8px;">
+            </div>
+            <div>
+                <label style="display:block; font-weight:600; margin-bottom:5px;">Nombre del remitente</label>
+                <input type="text" name="default_sender_name" class="form-control" value="{{ config_data.default_sender_name or 'INSPOL México' }}" style="width:100%; padding:10px; border:1px solid #dce1e9; border-radius:8px;">
+            </div>
+            <div>
+                <label style="display:block; font-weight:600; margin-bottom:5px;">Email del remitente</label>
+                <input type="email" name="default_sender_email" class="form-control" value="{{ config_data.default_sender_email or 'ventas@inspol.com.mx' }}" style="width:100%; padding:10px; border:1px solid #dce1e9; border-radius:8px;">
+            </div>
+        </div>
+        <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Guardar Configuración
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .btn { padding:8px 16px; border:none; border-radius:8px; font-weight:500; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:0.2s; font-size:14px; }
+    .btn-primary { background:#2a6df4; color:white; }
+    .btn-primary:hover { background:#1a5ad4; }
+</style>
+{% endblock %}

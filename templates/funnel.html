@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Funnel de Ventas - INSPOL AI{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <div class="left">
+        <h1><span>Funnel</span> de Ventas</h1>
+        <div class="sub">Visualización del embudo de conversión</div>
+    </div>
+</div>
+
+<!-- Resumen del embudo -->
+<div class="card">
+    <div class="card-title"><i class="fas fa-funnel-dollar"></i> Embudo de Conversión</div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:10px;">
+        <div style="text-align:center; padding:10px; background:#f8faff; border-radius:8px;">
+            <div style="font-size:24px; font-weight:700; color:#2a6df4;">{{ total_leads }}</div>
+            <div style="font-size:12px; color:#6c7e9e;">Leads Cargados</div>
+            <div style="font-size:11px; color:#28a745;">100%</div>
+        </div>
+        <div style="text-align:center; padding:10px; background:#f8faff; border-radius:8px;">
+            <div style="font-size:24px; font-weight:700; color:#17a2b8;">{{ total_analizados }}</div>
+            <div style="font-size:12px; color:#6c7e9e;">Analizados</div>
+            <div style="font-size:11px; color:#28a745;">{{ conversion_analisis }}%</div>
+        </div>
+        <div style="text-align:center; padding:10px; background:#f8faff; border-radius:8px;">
+            <div style="font-size:24px; font-weight:700; color:#28a745;">{{ total_contactos }}</div>
+            <div style="font-size:12px; color:#6c7e9e;">Contactos</div>
+            <div style="font-size:11px; color:#28a745;">{{ conversion_contacto }}%</div>
+        </div>
+        <div style="text-align:center; padding:10px; background:#f8faff; border-radius:8px;">
+            <div style="font-size:24px; font-weight:700; color:#ffc107;">{{ total_enviados }}</div>
+            <div style="font-size:12px; color:#6c7e9e;">Enviados</div>
+            <div style="font-size:11px; color:#28a745;">{{ conversion_envio }}%</div>
+        </div>
+        <div style="text-align:center; padding:10px; background:#f8faff; border-radius:8px;">
+            <div style="font-size:24px; font-weight:700; color:#17a2b8;">{{ total_aperturas }}</div>
+            <div style="font-size:12px; color:#6c7e9e;">Aperturas</div>
+            <div style="font-size:11px; color:#28a745;">{{ conversion_apertura }}%</div>
+        </div>
+        <div style="text-align:center; padding:10px; background:#f8faff; border-radius:8px;">
+            <div style="font-size:24px; font-weight:700; color:#28a745;">{{ total_clicks }}</div>
+            <div style="font-size:12px; color:#6c7e9e;">Clics</div>
+            <div style="font-size:11px; color:#28a745;">{{ conversion_click }}%</div>
+        </div>
+        <div style="text-align:center; padding:10px; background:#f8faff; border-radius:8px;">
+            <div style="font-size:24px; font-weight:700; color:#dc3545;">{{ total_pdf_opens }}</div>
+            <div style="font-size:12px; color:#6c7e9e;">PDF Abiertos</div>
+            <div style="font-size:11px; color:#28a745;">{{ conversion_pdf }}%</div>
+        </div>
+        <div style="text-align:center; padding:10px; background:#f8faff; border-radius:8px;">
+            <div style="font-size:24px; font-weight:700; color:#25D366;">{{ total_whatsapp_clicks }}</div>
+            <div style="font-size:12px; color:#6c7e9e;">WhatsApp</div>
+            <div style="font-size:11px; color:#28a745;">{{ conversion_whatsapp }}%</div>
+        </div>
+        <div style="text-align:center; padding:10px; background:#f8faff; border-radius:8px;">
+            <div style="font-size:24px; font-weight:700; color:#6f42c1;">{{ total_respuestas }}</div>
+            <div style="font-size:12px; color:#6c7e9e;">Respuestas</div>
+            <div style="font-size:11px; color:#28a745;">{{ conversion_respuesta }}%</div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráfico de embudo -->
+<div class="card">
+    <div class="card-title"><i class="fas fa-chart-bar"></i> Visualización del Embudo</div>
+    <div style="height:300px;">
+        <canvas id="funnelChart"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('funnelChart').getContext('2d');
+    const funnelData = {{ funnel_data|tojson }};
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: funnelData.map(d => d.etapa),
+            datasets: [{
+                label: 'Cantidad',
+                data: funnelData.map(d => d.valor),
+                backgroundColor: [
+                    '#2a6df4', '#17a2b8', '#28a745', '#ffc107',
+                    '#fd7e14', '#dc3545', '#6f42c1', '#25D366'
+                ],
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) { return value; }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

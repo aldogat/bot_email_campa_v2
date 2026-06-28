@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Resultados IA - INSPOL AI{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <div class="left">
+        <h1><span>Análisis</span> de Resultados IA</h1>
+        <div class="sub">Rendimiento de campañas y recomendaciones inteligentes</div>
+    </div>
+    <div class="right">
+        <span style="font-size:12px; color:#6c7e9e;">
+            <i class="far fa-calendar-alt"></i> {{ data.fecha_analisis.strftime('%d/%m/%Y %H:%M') }}
+        </span>
+    </div>
+</div>
+
+<!-- Métricas globales -->
+<div class="metric-grid">
+    <div class="metric-item">
+        <div class="icon"><i class="fas fa-bullhorn"></i></div>
+        <div class="number">{{ data.total_campaigns }}</div>
+        <div class="label">Campañas</div>
+    </div>
+    <div class="metric-item">
+        <div class="icon"><i class="fas fa-users"></i></div>
+        <div class="number">{{ data.total_contacts }}</div>
+        <div class="label">Contactos</div>
+    </div>
+    <div class="metric-item">
+        <div class="icon"><i class="fas fa-envelope"></i></div>
+        <div class="number">{{ data.total_sent }}</div>
+        <div class="label">Correos Enviados</div>
+    </div>
+    <div class="metric-item">
+        <div class="icon"><i class="fas fa-eye"></i></div>
+        <div class="number">{{ data.total_opens }}</div>
+        <div class="label">Aperturas</div>
+    </div>
+    <div class="metric-item">
+        <div class="icon"><i class="fas fa-mouse-pointer"></i></div>
+        <div class="number">{{ data.total_clicks }}</div>
+        <div class="label">Clics</div>
+    </div>
+    <div class="metric-item">
+        <div class="icon"><i class="fas fa-reply"></i></div>
+        <div class="number">{{ data.total_responses }}</div>
+        <div class="label">Respuestas</div>
+    </div>
+</div>
+
+<!-- Tasas -->
+<div class="two-col">
+    <div class="card">
+        <div class="card-title"><i class="fas fa-chart-line"></i> Tasas de Conversión</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px;">
+            <div style="text-align:center; padding:10px; background:#f8faff; border-radius:8px;">
+                <div style="font-size:28px; font-weight:700; color:#2a6df4;">{{ data.open_rate }}%</div>
+                <div style="font-size:12px; color:#6c7e9e;">Apertura</div>
+            </div>
+            <div style="text-align:center; padding:10px; background:#f8faff; border-radius:8px;">
+                <div style="font-size:28px; font-weight:700; color:#17a2b8;">{{ data.click_rate }}%</div>
+                <div style="font-size:12px; color:#6c7e9e;">Clics</div>
+            </div>
+            <div style="text-align:center; padding:10px; background:#f8faff; border-radius:8px;">
+                <div style="font-size:28px; font-weight:700; color:#28a745;">{{ data.response_rate }}%</div>
+                <div style="font-size:12px; color:#6c7e9e;">Respuesta</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class="fas fa-lightbulb"></i> Recomendaciones IA</div>
+        <div style="max-height:200px; overflow-y:auto; font-size:14px;">
+            {% for rec in data.recomendaciones %}
+                <div style="padding:6px 0; border-bottom:1px solid #f0f3f8;">{{ rec }}</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Top campañas -->
+<div class="card">
+    <div class="card-title"><i class="fas fa-trophy"></i> Top Campañas</div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Campaña</th>
+                    <th>Enviados</th>
+                    <th>Apertura</th>
+                    <th>Clics</th>
+                    <th>Respuesta</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for camp in data.top_campaigns %}
+                    <tr>
+                        <td><strong>{{ camp.name }}</strong></td>
+                        <td>{{ camp.sent }}</td>
+                        <td><span style="font-weight:600; color:{% if camp.open_rate > 40 %}#28a745{% elif camp.open_rate > 20 %}#ffc107{% else %}#dc3545{% endif %};">{{ camp.open_rate }}%</span></td>
+                        <td>{{ camp.click_rate }}%</td>
+                        <td>{{ camp.response_rate }}%</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Análisis por industria y scoring -->
+<div class="two-col">
+    <div class="card">
+        <div class="card-title"><i class="fas fa-industry"></i> Análisis por Industria</div>
+        <div style="max-height:200px; overflow-y:auto;">
+            {% for ind, stats in data.industrias.items() %}
+                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f0f3f8;">
+                    <span>{{ ind }}</span>
+                    <span><strong>{{ stats.total }}</strong> leads · {{ stats.analizados }} analizados</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title"><i class="fas fa-star"></i> Rendimiento por Scoring</div>
+        <div style="max-height:200px; overflow-y:auto;">
+            {% for s, stats in data.scoring_analysis.items() %}
+                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f0f3f8;">
+                    <span><strong>Scoring {{ s }}</strong></span>
+                    <span>{{ stats.total }} leads · {{ stats.open_rate }}% analizados</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Clasificación de respuestas -->
+<div class="card">
+    <div class="card-title"><i class="fas fa-tags"></i> Clasificación de Respuestas (IA)</div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:15px;">
+        {% for resp in respuestas %}
+            <div style="background:#f8faff; padding:12px; border-radius:8px; border-left:4px solid #2a6df4;">
+                <div style="font-weight:600; color:#2a6df4;">{{ resp.clasificacion }}</div>
+                <div style="font-size:13px; color:#6c7e9e; margin-top:4px;">"{{ resp.texto }}"</div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Palabras clave más efectivas -->
+<div class="card">
+    <div class="card-title"><i class="fas fa-key"></i> Palabras Clave Más Efectivas</div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:10px;">
+        {% for kw in data.keyword_performance %}
+            <div style="background:#f8faff; padding:10px; border-radius:8px; text-align:center;">
+                <div style="font-weight:700; font-size:16px;">{{ kw.keyword }}</div>
+                <div style="font-size:12px; color:#6c7e9e;">
+                    <span style="color:#2a6df4;">{{ kw.opens }} aperturas</span> · 
+                    <span style="color:#28a745;">{{ kw.clicks }} clics</span>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .badge { padding:2px 10px; border-radius:30px; font-size:11px; font-weight:600; }
+</style>
+{% endblock %}
